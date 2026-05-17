@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premium Finals Reviewer</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;
+  --border:rgba(255,255,255,0.08);--border-h:rgba(255,255,255,0.18);
+  --text:#f0eff6;--muted:#7a7890;--dim:#4a4860;
+  --gov:#a78bfa;--gov-bg:rgba(167,139,250,0.12);
+  --ops:#34d399;--ops-bg:rgba(52,211,153,0.10);
+  --uts:#fb923c;--uts-bg:rgba(251,146,60,0.12);
+  --ok:#34d399;--ok-bg:rgba(52,211,153,0.10);
+  --err:#f87171;--err-bg:rgba(248,113,113,0.10);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;top:-20%;left:-10%;width:60%;height:60%;background:radial-gradient(ellipse,rgba(167,139,250,0.07) 0%,transparent 70%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;bottom:-20%;right:-10%;width:60%;height:60%;background:radial-gradient(ellipse,rgba(251,146,60,0.05) 0%,transparent 70%);pointer-events:none;z-index:0}
+.noise{position:fixed;inset:0;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px;pointer-events:none;z-index:0}
+.wrap{max-width:700px;margin:0 auto;padding:2rem 1.5rem 4rem;position:relative;z-index:1}
+
+/* HEADER */
+.header{text-align:center;padding:3rem 0 2rem;animation:fadeUp .6s ease both}
+.eyebrow{font-family:'Syne',sans-serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+.header h1{font-family:'Syne',sans-serif;font-size:clamp(2.1rem,6vw,3.2rem);font-weight:800;line-height:1.1;background:linear-gradient(135deg,#f0eff6 20%,#a78bfa 55%,#fb923c 85%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.6rem}
+.header p{color:var(--muted);font-size:14px;font-weight:300;line-height:1.6;letter-spacing: 0.02em;}
+
+/* EVALUATION SCOPE CARD */
+.scope-card {background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;margin:2rem 0;position:relative;overflow:hidden;animation:fadeUp .6s .1s ease both;}
+.scope-title {font-family:'Syne',sans-serif;font-size:16px;font-weight:700;letter-spacing:.05em;color:var(--text);margin-bottom:0.5rem;}
+.scope-desc {color:var(--muted);font-size:13.5px;margin-bottom:1.5rem;font-weight:300;}
+
+/* SCOPE SELECTORS */
+.selectors-grid {display:flex;flex-direction:column;gap:12px;margin-bottom:1.5rem;}
+.scope-option {display:flex;align-items:center;justify-content:between;width:100%;padding:14px 18px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,0.01);cursor:pointer;transition:all .2s;text-align:left;}
+.scope-option:hover {border-color:var(--border-h);background:var(--surface2);transform:translateX(2px);}
+.scope-option.active[data-type="gov"] {border-color:var(--gov);background:var(--gov-bg);}
+.scope-option.active[data-type="ops"] {border-color:var(--ops);background:var(--ops-bg);}
+.scope-option.active[data-type="uts"] {border-color:var(--uts);background:var(--uts-bg);}
+
+.checkbox-custom {width:18px;height:18px;border-radius:6px;border:2px solid var(--dim);margin-right:14px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.scope-option.active .checkbox-custom {border-color:currentColor;background:currentColor;}
+.scope-option.active .checkbox-custom::after {content:'✓';font-size:11px;color:#0a0a0f;font-weight:900;}
+
+.scope-info {display:flex;flex-direction:column;flex-grow:1;}
+.scope-label {font-family:'Syne',sans-serif;font-weight:700;font-size:14px;}
+.scope-sublabel {font-size:12px;color:var(--muted);margin-top:2px;}
+.scope-count {font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--dim);background:rgba(255,255,255,0.03);padding:4px 10px;border-radius:8px;border:1px solid var(--border);}
+.scope-option.active .scope-count {color:var(--text);background:rgba(255,255,255,0.15);border-color:transparent;}
+
+/* INITIALIZE BTN */
+.start-btn{display:block;width:100%;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:16px 28px;border-radius:12px;border:1px solid rgba(167,139,250,.4);background:linear-gradient(135deg,rgba(167,139,250,.15),rgba(251,146,60,.1));color:var(--text);cursor:pointer;transition:all .25s;}
+.start-btn:hover{border-color:rgba(167,139,250,.7);background:linear-gradient(135deg,rgba(167,139,250,.25),rgba(251,146,60,.15));transform:translateY(-2px);box-shadow:0 8px 32px rgba(167,139,250,.2)}
+
+/* PROGRESS */
+.prog-wrap{margin-bottom:1.75rem;animation:fadeUp .3s ease both}
+.prog-meta{display:flex;justify-content:space-between;margin-bottom:7px}
+.prog-lbl{font-family:'Syne',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim)}
+.prog-frac" {font-family:'Syne',sans-serif;font-size:12px;color:var(--muted)}
+.prog-track{height:3px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gov),var(--uts));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* QUESTION CARD */
+.qcard{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:1.75rem;margin-bottom:1rem;animation:fadeUp .4s ease both;position:relative;overflow:hidden}
+.qcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gov),var(--uts));opacity:.7}
+.qmeta{display:flex;align-items:center;gap:10px;margin-bottom:1.1rem}
+.pill{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:100px;border:1px solid}
+.pg{color:var(--gov);border-color:rgba(167,139,250,.3);background:var(--gov-bg)}
+.po{color:var(--ops);border-color:rgba(52,211,153,.3);background:var(--ops-bg)}
+.pu{color:var(--uts);border-color:rgba(251,146,60,.3);background:var(--uts-bg)}
+.qnum{font-family:'Syne',sans-serif;font-size:11px;color:var(--dim);margin-left:auto}
+.qtext{font-size:17px;font-weight:500;line-height:1.55;color:var(--text)}
+
+/* OPTIONS */
+.opts{display:flex;flex-direction:column;gap:9px;margin-bottom:1rem;animation:fadeUp .4s .05s ease both}
+.opt{display:flex;align-items:flex-start;gap:13px;width:100%;text-align:left;padding:13px 16px;border-radius:13px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14.5px;line-height:1.5;cursor:pointer;transition:all .18s}
+.opt:hover:not(:disabled){border-color:var(--border-h);background:var(--surface2);transform:translateX(4px)}
+.opt:disabled{cursor:default;transform:none!important}
+.opt-l{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;min-width:22px;height:22px;border-radius:6px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-top:1px;flex-shrink:0;transition:all .18s;color:var(--muted);background:var(--surface2)}
+.opt.sc{border-color:rgba(52,211,153,.4);background:var(--ok-bg);color:var(--ok)}
+.opt.sc .opt-l{background:var(--ok);border-color:var(--ok);color:#0a0a0f}
+.opt.sw{border-color:rgba(248,113,113,.4);background:var(--err-bg);color:var(--err)}
+.opt.sw .opt-l{background:var(--err);border-color:var(--err);color:#0a0a0f}
+.opt.sr{border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.05);color:var(--ok);opacity:.85}
+.opt.sr .opt-l{background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.4);color:var(--ok)}
+.opt.sd{opacity:.3}
+
+/* FEEDBACK */
+.fb{border-radius:13px;padding:13px 16px;font-size:14px;line-height:1.6;margin-bottom:1rem;animation:slideIn .3s ease both;display:flex;gap:11px;align-items:flex-start}
+.fb.fc{background:var(--ok-bg);border:1px solid rgba(52,211,153,.25);color:#6ee7b7}
+.fb.fw{background:var(--err-bg);border:1px solid rgba(248,113,113,.25);color:#fca5a5}
+.fb-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+
+/* NEXT */
+.next-btn{display:flex;align-items:center;gap:7px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:12px 24px;border-radius:11px;border:1px solid var(--border-h);background:var(--surface);color:var(--text);cursor:pointer;transition:all .2s;animation:fadeUp .3s ease both;margin-left:auto}
+.next-btn:hover{background:var(--surface2);border-color:rgba(255,255,255,.3);transform:translateX(4px)}
+.arr{transition:transform .2s}.next-btn:hover .arr{transform:translateX(4px)}
+
+/* SCORE */
+.score-wrap{text-align:center;padding:1rem 0 2rem;animation:fadeUp .5s ease both}
+.ring{width:140px;height:140px;margin:0 auto 2rem;position:relative}
+.ring svg{transform:rotate(-90deg)}
+.ring-bg{stroke:var(--surface2);stroke-width:8;fill:none}
+.ring-fill{stroke-width:8;fill:none;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)}
+.ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.ring-pct{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1}
+.ring-lbl{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-family:'Syne',sans-serif}
+.verdict{font-family:'Syne',sans-serif;font-size:clamp(1.5rem,5vw,2rem);font-weight:800;margin-bottom:.5rem}
+.verdict-sub{font-size:15px;color:var(--muted);margin-bottom:2.5rem;font-weight:300}
+.score-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn-sec{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:11px 22px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.btn-sec:hover{border-color:var(--border-h);color:var(--text);background:var(--surface2)}
+.btn-pri{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:11px 26px;border-radius:10px;border:1px solid rgba(167,139,250,.4);background:linear-gradient(135deg,rgba(167,139,250,.2),rgba(251,146,60,.1));color:var(--text);cursor:pointer;transition:all .2s}
+.btn-pri:hover{border-color:rgba(167,139,250,.7);transform:translateY(-2px);box-shadow:0 8px 24px rgba(167,139,250,.2)}
+
+/* SCREENS */
+.screen{display:none}.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:500px){.stats{grid-template-columns:repeat(2,1fr)}.qtext{font-size:15px}.qcard{padding:1.3rem}}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="wrap">
+
+<div id="s-start" class="screen active">
+  <div class="header">
+    <div class="eyebrow">🛡️ Adaptive Architecture Engine</div>
+    <h1>Premium Finals<br>Reviewer</h1>
+    <p>Advanced Academic Success Diagnostics</p>
+  </div>
+  
+  <div class="scope-card">
+    <div class="scope-title">Configure Evaluation Scope</div>
+    <div class="scope-desc">Select the module topics you wish to target in this execution module:</div>
+    
+    <div class="selectors-grid">
+      <button class="scope-option active" data-type="gov" onclick="toggleModule('gov')" style="color: var(--gov);">
+        <div class="checkbox-custom"></div>
+        <div class="scope-info">
+          <span class="scope-label">Governance Mechanisms</span>
+          <span class="scope-sublabel">Corporate structures, board responsibilities, agency costs</span>
+        </div>
+        <span class="scope-count">11 Qs</span>
+      </button>
+
+      <button class="scope-option active" data-type="ops" onclick="toggleModule('ops')" style="color: var(--ops);">
+        <div class="checkbox-custom"></div>
+        <div class="scope-info">
+          <span class="scope-label">Operations & Quality Management</span>
+          <span class="scope-sublabel">TQM, operations design, productivity matrices</span>
+        </div>
+        <span class="scope-count">8 Qs</span>
+      </button>
+
+      <button class="scope-option active" data-type="uts" onclick="toggleModule('uts')" style="color: var(--uts);">
+        <div class="checkbox-custom"></div>
+        <div class="scope-info">
+          <span class="scope-label">Understanding the Self</span>
+          <span class="scope-sublabel">Psychology, stress management models, Filipino values system</span>
+        </div>
+        <span class="scope-count">38 Qs</span>
+      </button>
+    </div>
+
+    <button class="start-btn" onclick="initializeSession()">Initialize Session →</button>
+  </div>
+</div>
+
+<div id="s-quiz" class="screen">
+  <div class="prog-wrap">
+    <div class="prog-meta"><span class="prog-lbl">Execution Progress</span><span class="prog-frac" id="pfrac">0/0</span></div>
+    <div class="prog-track"><div class="prog-fill" id="pfill" style="width:0%"></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qmeta"><span class="pill" id="qpill"></span><span class="qnum" id="qnum"></span></div>
+    <div class="qtext" id="qtext"></div>
+  </div>
+  <div class="opts" id="opts"></div>
+  <div id="fbwrap"></div>
+  <div style="display:flex;justify-content:flex-end">
+    <button class="next-btn" id="nextbtn" style="display:none" onclick="next()">Next Step <span class="arr">→</span></button>
+  </div>
+</div>
+
+<div id="s-score" class="screen">
+  <div class="score-wrap">
+    <div class="ring">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle class="ring-bg" cx="70" cy="70" r="58"/>
+        <circle class="ring-fill" id="rarc" cx="70" cy="70" r="58" stroke-dasharray="364.42" stroke-dashoffset="364.42"/>
+      </svg>
+      <div class="ring-center"><div class="ring-pct" id="rpct">0%</div><div class="ring-lbl">diagnostic</div></div>
+    </div>
+    <div class="verdict" id="rverdict"></div>
+    <div class="verdict-sub" id="rsub"></div>
+    <div class="score-actions">
+      <button class="btn-sec" onclick="showStart()">Reconfigure Scope</button>
+      <button class="btn-pri" onclick="initializeSession()">Restart Module →</button>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const Q=[
+/* === GOVERNANCE === */
+{t:'gov',tl:'Governance Mechanisms',q:'What is corporate governance?',o:['A financial reporting system used by auditors','A set of rules, practices, and procedures aimed at balancing stakeholder interests','A legal framework that regulates stock markets','A method for calculating executive salaries'],c:1,e:'Corporate governance is a set of rules, practices, and procedures designed to balance the interests of various stakeholders.'},
+{t:'gov',tl:'Governance Mechanisms',q:'What is "agency cost"?',o:['The fee paid to hire a new CEO','The total sum of incentive, monitoring, and enforcement costs plus individual losses because governance cannot guarantee full agent compliance','The cost of advertising campaigns on behalf of the firm','The commission paid to stockbrokers for trading shares'],c:1,e:'Agency cost is the sum of incentive costs, monitoring costs, enforcement costs, and individual financial losses incurred by principals because governance cannot guarantee total agent compliance (Hitt).'},
+{t:'gov',tl:'Governance Mechanisms',q:'How is "ownership concentration" defined?',o:['The number of employees who own company stock options','The number of large-block shareholders and the total percentage of shares they own','The percentage of shares traded daily on the exchange','The ratio of insider to outsider shareholders on the board'],c:1,e:'Ownership concentration is defined by the number of large-block shareholders and the total percentage of the firm\'s shares they own (Hitt).'},
+{t:'gov',tl:'Governance Mechanisms',q:'What are "institutional owners"?',o:['Government agencies that regulate corporations','Financial institutions such as mutual funds and pension funds that control large block shareholder positions','Founders and family members who hold majority stakes','Independent directors appointed by the government'],c:1,e:'Institutional owners are financial institutions, such as mutual funds and pension funds, that control large block shareholder positions (Hitt).'},
+{t:'gov',tl:'Governance Mechanisms',q:'What is the primary responsibility of the Board of Directors?',o:['Managing day-to-day operations','Setting product prices and marketing strategies','Formally monitoring and controlling top-level managers to act in owners\' best interest','Preparing the company\'s annual financial statements'],c:2,e:'The Board of Directors primarily acts in the owners\' best interest by formally monitoring and controlling the firm\'s top-level managers (Hitt).'},
+{t:'gov',tl:'Governance Mechanisms',q:'Which BOD members are classified as "insiders"?',o:['Independent advisors with no business relationship','Individuals who provide independent counsel','The firm\'s CEO and other top-level managers who are the source of day-to-day operation information','Shareholders who own more than 50% of the company'],c:2,e:'Insiders are the firm\'s CEO and other top-level managers — the source of information about day-to-day operations (Hitt).'},
+{t:'gov',tl:'Governance Mechanisms',q:'What best describes "related outsiders" on the Board of Directors?',o:['Board members who are also major shareholders','Individuals with some relationship to the firm but not involved in day-to-day operations','Government-appointed regulators','Former employees rehired in advisory capacity'],c:1,e:'Related outsiders have some relationship with the firm (contractual or otherwise) but are not involved in its day-to-day operations (Hitt).'},
+{t:'gov',tl:'Governance Mechanisms',q:'What is executive compensation as a governance mechanism?',o:['A penalty system for poor-performing managers','A mechanism that seeks to align manager and owner interests through salaries, bonuses, and long-term incentives','A government-mandated salary cap','A performance review system by HR'],c:1,e:'Executive compensation is a governance mechanism that seeks to align the interest of managers and owners through salaries, bonuses, and long-term incentives (Hitt).'},
+{t:'gov',tl:'Governance Mechanisms',q:'When does the "market for corporate control" become active?',o:['When a company wants to go public','When internal governance mechanisms fail','When a company wants to expand into a new market','When shareholders demand higher dividends'],c:1,e:'The market for corporate control is an external governance mechanism that becomes active when internal governance mechanisms fail (Hitt).'},
+{t:'gov',tl:'Governance Mechanisms',q:'What happens to top-level managers of corporations considered "ineffective" in the market for corporate control?',o:['They receive additional bonuses','They are promoted to board-level positions','They are usually replaced','They are required to buy more company stock'],c:2,e:'In the market for corporate control, corporations considered ineffective have their top-level managers usually replaced.'},
+{t:'gov',tl:'Governance Mechanisms',q:'Why is institutional ownership considered a powerful governance mechanism?',o:['Institutions always vote in favor of management proposals','They pressure firms to adopt effective governance to best represent owners\' interests','They are exempt from financial regulations','They provide free legal counsel to the company'],c:1,e:'Institutional ownership is potentially powerful because large block shareholders are increasingly active in demanding firms adopt effective governance to control managerial decisions.'},
+/* === OPERATIONS === */
+{t:'ops',tl:'Operations & Quality',q:'How is "operation management" defined?',o:['The process of hiring and training employees','The set of managerial activities that organizations use in creating their products and/or services','A method for conducting market research','The financial planning and budgeting process of a firm'],c:1,e:'Operation management is the set of managerial activities that organizations use in creating their products and/or services (Griffin).'},
+{t:'ops',tl:'Operations & Quality',q:'Why is operation management important?',o:['It is only relevant to manufacturing companies','It is crucial in determining the appropriate strategy and important to both manufacturing and service organizations','It solely focuses on cost reduction','It mainly deals with human resource planning'],c:1,e:'Operation management is important to both manufacturing and service organizations and is crucial in determining the appropriate strategy.'},
+{t:'ops',tl:'Operations & Quality',q:'What is the starting point in operation management?',o:['Recruiting the right workforce','Designing an appropriate operation system','Setting a marketing budget','Establishing financial controls'],c:1,e:'Designing an appropriate operation system is the starting point in operation management.'},
+{t:'ops',tl:'Operations & Quality',q:'Which are the key decisions in an operation system?',o:['Advertising, distribution, and pricing','Product and service mix, capacity, and facilities','Recruitment, training, and retention','Accounting, auditing, and tax planning'],c:1,e:'The key decisions include product and service mix, capacity, and facilities.'},
+{t:'ops',tl:'Operations & Quality',q:'What major areas of an operation system must be properly managed?',o:['Marketing and public relations','Purchase and inventory','Recruitment and payroll','Accounting and finance'],c:1,e:'The major areas that must be managed properly include purchase and inventory.'},
+{t:'ops',tl:'Operations & Quality',q:'What is Total Quality Management (TQM)?',o:['A software tool for tracking defects','A comprehensive, organization-wide effort to enhance quality in various ways','A financial audit process','A customer service training program'],c:1,e:'TQM is a comprehensive, organization-wide effort to enhance quality in various ways (Griffin). Quality affects competition, costs, and productivity.'},
+{t:'ops',tl:'Operations & Quality',q:'What does TQM affect in an organization?',o:['Employee morale, vacation policies, and office design','Competition, costs, and productivity','Marketing budgets, social media, and public relations','Corporate governance, board structure, and shareholder rights'],c:1,e:'Quality — and therefore TQM — affects competition, costs, and productivity.'},
+{t:'ops',tl:'Operations & Quality',q:'How is "productivity" defined in operations management?',o:['The total revenue generated in a fiscal year','A measure of how efficiently an organization uses its resources to create products or services','The number of employees working in production per shift','The ratio of exports to imports'],c:1,e:'Productivity is a measure of how efficiently an organization is using its resources to create products or services (Griffin).'},
+/* === UNDERSTANDING THE SELF === */
+{t:'uts',tl:'Understanding the Self',q:'What is "learning" as defined in the notes?',o:['Memorizing facts for an exam','A change in behavior potentiality that happens when we absorb knowledge','The process of translating potential into observable action','Getting good grades in school'],c:1,e:'Learning is a change in behavior potentiality; it happens when we absorb knowledge.'},
+{t:'uts',tl:'Understanding the Self',q:'What does "performance" refer to?',o:['Academic grades and scores','The translation of learning potentiality into behavior; how well you translate potential into observable action','The ability to memorize large amounts of information','Competing with other students'],c:1,e:'Performance refers to the translation of potentiality into behavior — it answers: How well can you translate your potential into observable action?'},
+{t:'uts',tl:'Understanding the Self',q:'Under the stress-performance relationship, when is performance HIGHEST?',o:['Under very low stress','Under very high stress','Under moderate stress','Performance is not affected by stress'],c:2,e:'Moderate levels of cortisol correlate with the highest performance on tasks of any type. This is illustrated by the classic inverted-U curve.'},
+{t:'uts',tl:'Understanding the Self',q:'Which learning type involves learning WITHOUT understanding?',o:['Rational Learning','Motor Learning','Rote Learning','Appreciational Learning'],c:2,e:'Rote Learning is learning without understanding — the classic example is memorization.'},
+{t:'uts',tl:'Understanding the Self',q:'What is "Associational Learning"?',o:['Learning through movement and sports','Learning with full understanding of concepts','Learning through establishing relationships, e.g., praying the Angelus every 12 NN','Acquiring values and attitudes through activities'],c:2,e:'Associational Learning is learning through establishing relationships. A classic example is praying the Angelus every 12 NN.'},
+{t:'uts',tl:'Understanding the Self',q:'Which Basic Principle of Learning says the most recently encountered information is most likely to be recalled?',o:['Frequency','Vividness','Exercise','Recency'],c:3,e:'The Recency principle states that the most recent impression or association is more likely to be recalled.'},
+{t:'uts',tl:'Understanding the Self',q:'Who developed the VARK Learning Styles model?',o:['Abraham Maslow','Albert Bandura','Neil Fleming','Carol Dweck'],c:2,e:'Neil Fleming, an educational theorist from New Zealand, developed the VARK model in 1987 to help students identify their learning preferences based on sensory modalities.'},
+{t:'uts',tl:'Understanding the Self',q:'In the VARK model, which learner type absorbs information best by HEARING it?',o:['Visual','Aural/Auditory','Read/Write','Kinesthetic'],c:1,e:'Aural/Auditory learners absorb information by hearing it.'},
+{t:'uts',tl:'Understanding the Self',q:'What is the "Selective Multimodal" VARK modality?',o:['Using all VARK strategies simultaneously','Being flexible and switching from one mode to another depending on context — one at a time','Strictly sticking to one learning mode forever','Combining all modes into one mega-strategy'],c:1,e:'Selective Multimodal learners are flexible and switch from mode to mode depending on what they are working with — context specific, one at a time.'},
+{t:'uts',tl:'Understanding the Self',q:'What is a "goal" as defined in the notes?',o:['A vague idea of what you want to achieve someday','An observable and measurable end result of several objectives to be accomplished in a given time frame','A strategy to avoid failure','A list of tasks to complete each day'],c:1,e:'Goals are observable and measurable end results of several objectives that are to be accomplished in a given time frame — the desired results or outcomes one wishes to achieve.'},
+{t:'uts',tl:'Understanding the Self',q:'According to the Goal Setting Theory (Locke & Latham), what contributes to higher and better performance?',o:['Easy and flexible goals with no deadlines','Specific and challenging goals along with appropriate feedback','Vague goals that leave room for creativity','No goals, just pure motivation'],c:1,e:'Locke and Latham\'s Goal Setting Theory states that specific and challenging goals, along with appropriate feedback, contribute to higher and better performance.'},
+{t:'uts',tl:'Understanding the Self',q:'What does the "A" stand for in SMART Goals (as used in the notes)?',o:['Achievable','Ambitious','Automated','Affirmative'],c:0,e:'In SMART Goals: Specific, Measurable, Action Plan (realistic and achievable), Relevant, Time-Bound.'},
+{t:'uts',tl:'Understanding the Self',q:'According to Maslow\'s Hierarchy, what does "prepotency" mean?',o:['That all needs can be pursued simultaneously','That needs must be satisfied or mostly satisfied before higher-level needs become activated','That physiological needs are unimportant','That self-actualization is the starting point'],c:1,e:'Prepotency means needs must be satisfied or mostly satisfied before higher-level needs become activated. Each stage must be accomplished before the next.'},
+{t:'uts',tl:'Understanding the Self',q:'What is "self-efficacy" in Bandura\'s Social Cognitive Theory?',o:['The belief that others control our outcomes','The belief in our own abilities and capability to achieve what is needed and meet challenges ahead','A fixed ability we are born with','A type of learning disorder'],c:1,e:'Self-efficacy is the belief we have in our own abilities and capability to achieve what is needed — specifically our ability to meet challenges ahead of us (Bandura).'},
+{t:'uts',tl:'Understanding the Self',q:'In Growth Mindset Theory (Carol Dweck), what characterizes a FIXED mindset?',o:['Believing any ability can be acquired with effort','Believing abilities are mostly innate and interpreting failure as a lack of basic abilities','Embracing challenges enthusiastically','Believing feedback is a gift'],c:1,e:'A fixed mindset holds that abilities are mostly innate and interprets failure as the lack of necessary basic abilities.'},
+{t:'uts',tl:'Understanding the Self',q:'What is stress defined as in the notes?',o:['A purely negative emotional state','An internal alarm system — the body\'s response to a real or perceived threat; a combination of a stressor and stress response','Only triggered by physical danger','A mental disorder requiring diagnosis'],c:1,e:'Stress is an internal alarm system — the body\'s response to a real or perceived threat. It is a combination of a stressor and a stress response, and can be useful or harmful.'},
+{t:'uts',tl:'Understanding the Self',q:'What is "Eustress"?',o:['Long-term negative stress that causes burnout','Positive, often short-term stress that helps you achieve goals and improve focus','Stress caused only by environmental factors','A stress disorder requiring therapy'],c:1,e:'Eustress is positive stress — often short-term — that helps you achieve your goals. Research suggests acceptable stress levels may help focus and concentration.'},
+{t:'uts',tl:'Understanding the Self',q:'Which category of stressor involves how a person perceives a situation, such as exams or problems?',o:['Environmental Stressors','Life Situation Stressors','Personal Behavior Stressors','Cognitive/Thinking Stressors'],c:3,e:'Cognitive/Thinking Stressors stem from how a person perceives a situation — examples include exams and personal problems.'},
+{t:'uts',tl:'Understanding the Self',q:'What is the General Adaptation Syndrome (Hans Selye) and how does it progress?',o:['A three-stage model: Awareness, Coping, Recovery','A two-stage model: Fight and Flight','A three-stage model: Alarm, Resistance, Exhaustion/Fatigue','A four-stage model: Denial, Anger, Bargaining, Acceptance'],c:2,e:'General Adaptation Syndrome describes the body\'s response to stress in three stages: Alarm, Resistance, and Exhaustion/Fatigue.'},
+{t:'uts',tl:'Understanding the Self',q:'Which personality type (stress & personality) is described as self-driven, competitive, high-achieving, and most likely to develop heart disease?',o:['Type B','Type C','Type D','Type A'],c:3,e:'Type A personality (Friedman & Rosenman) is self-driven, competitive, and high-achieving — the type most likely to develop heart disease or health problems.'},
+{t:'uts',tl:'Understanding the Self',q:'What is "Psychoneuroimmunology"?',o:['The study of brain tumors','The study of the interaction between psychological processes and the nervous and immune systems','A treatment method for anxiety','The study of personality types'],c:1,e:'Psychoneuroimmunology is the study of the interaction between psychological processes and the nervous and immune systems of the human body. It predicts that an individual\'s psychological state can influence their immune system.'},
+{t:'uts',tl:'Understanding the Self',q:'What does "Utang na Loob" mean and how does it relate to stress?',o:['A Filipino value meaning courage in adversity','A Filipino concept of debt of gratitude that can cause stress as it refutes unconditional positive regard','A form of community belonging that reduces stress','A social value equating to justice'],c:1,e:'"Utang na Loob" means debt of gratitude. It can cause stress because it refutes unconditional positive regard.'},
+{t:'uts',tl:'Understanding the Self',q:'What is "Bahala Na" as a Filipino stress coping strategy?',o:['Avoiding all problems','Expressing courage in the face of difficulties','The improvisatory "God will take care of things" attitude','Recognizing one\'s convictions and resistance'],c:2,e:'"Bahala Na" reflects the improvisatory skills of Filipinos — a belief that God will take care of things.'},
+{t:'uts',tl:'Understanding the Self',q:'What are the three results of good mental health according to the notes?',o:['High income, good relationships, and low stress','Productive activities, fulfilling relationships, and the ability to cope with life\'s challenges','Good grades, good health, and social popularity','Physical health, emotional balance, and spiritual growth'],c:1,e:'The three results of mental health are: (1) Productive Activities, (2) Fulfilling Relationships, (3) Ability to cope with life\'s challenges.'},
+{t:'uts',tl:'Understanding the Self',q:'In the Ginhawa Model, what does "Tatag at Tibay ng Loob" mean?',o:['Physical health and strength','Safety and stable emotional resolve','Spirituality and faith','Resilience; the ability to overcome challenges'],c:3,e:'"Tatag at Tibay ng Loob" means resilience — the ability to overcome challenges.'},
+{t:'uts',tl:'Understanding the Self',q:'What is the key difference between mental DISTRESS and a mental DISORDER?',o:['Distress is rarer and more severe; disorder is common and mild','Distress is common, usually short-lasting, and does not require diagnosis; disorder is less common, longer-lasting, severe, and needs diagnosis','There is no practical difference','Disorder is caused by problems; distress is innate'],c:1,e:'Distress is common, usually not severe, short-lasting, and diagnosis is NOT needed. Disorder is less common, often severe, long-lasting, and NEEDS to be diagnosed.'},
+{t:'uts',tl:'Understanding the Self',q:'What is the Biopsychosocial Model (George Engel)?',o:['A model that focuses only on physical symptoms','An attempt to integrate the psychological and environmental (social) into the traditional biomedical model of health','A model that dismisses mental factors in health','A financial model for healthcare costs'],c:1,e:'George Engel\'s Biopsychosocial Model attempted to integrate the psychological (psycho) and environmental (social) into the traditional biomedical (bio) model of health.'},
+{t:'uts',tl:'Understanding the Self',q:'What is the Diathesis-Stress Model?',o:['A model saying stress alone causes all mental illness','A model where mental/physical disorders develop from a genetic or biological predisposition (diathesis) combined with stressful conditions','A model that stress is always manageable','A model about diet and nutrition'],c:1,e:'The Diathesis-Stress Model states that mental and physical disorders develop from a genetic or biological predisposition for that illness (diathesis) combined with stressful conditions that play a precipitating or facilitating role.'},
+{t:'uts',tl:'Understanding the Self',q:'Which cognitive distortion involves "Black and White Thinking" — e.g., "If I\'m not perfect, I have failed"?',o:['Over-generalizing','Labelling','Mental Filter','All or Nothing Thinking'],c:3,e:'All or Nothing Thinking (Black and White Thinking) involves seeing things in extremes — e.g., "If I\'m not perfect, I have failed."'},
+{t:'uts',tl:'Understanding the Self',q:'What cognitive distortion involves imagining you know what others are thinking?',o:['Fortune Telling','Personalization','Mind Reading','Emotional Reasoning'],c:2,e:'Mind Reading is a sub-type of "Jumping to Conclusions" — it involves imagining we know what others are thinking.'},
+{t:'uts',tl:'Understanding the Self',q:'What is "Emotional Reasoning" as a cognitive distortion?',o:['Using logic to challenge feelings','Assuming that because we feel a certain way, what we think must be true — e.g., "I feel embarrassed so I must be an idiot"','Labelling others based on one incident','Blaming yourself for everything'],c:1,e:'Emotional Reasoning involves assuming that because we feel a certain way, what we think must be true — e.g., "I feel embarrassed so I must be an idiot."'},
+{t:'uts',tl:'Understanding the Self',q:'What is the focus of a Psychometrician?',o:['Prescribing medication for mental illness','Conducting therapy sessions','Administering objective and structured personality tests and conducting preparatory intake interviews','Integrating clients into the community'],c:2,e:'Psychometricians administer objective and structured personality tests and conduct preparatory intake interviews of clients for psychological intervention sessions.'},
+{t:'uts',tl:'Understanding the Self',q:'What is the distinction between a Psychiatrist and a Psychologist?',o:['Psychologists prescribe medication; psychiatrists only do therapy','Psychiatrists are medical doctors who can prescribe medical treatments; psychologists hold advanced degrees specializing in psychological testing, research, and clinical practice','Both have the same qualifications and roles','Psychiatrists only work in hospitals; psychologists work everywhere'],c:1,e:'Psychiatrists are medical doctors who assess both mental and physical aspects of problems and can prescribe medical treatments. Psychologists hold advanced degrees, have extensive training in research or clinical practice, and specialize in psychological testing and evaluation.'},
+{t:'uts',tl:'Understanding the Self',q:'What is "Problem-Focused Coping"?',o:['Regulating emotions caused by a stressful event','Attempting to do something constructive about the stressful conditions — e.g., managing time, asking for support, making to-do lists','Avoiding the problem entirely','Journaling and meditation'],c:1,e:'Problem-Focused Coping involves attempts to do something constructive about stressful conditions — examples include managing time, asking for support, establishing healthy boundaries, and creating a to-do list.'},
+{t:'uts',tl:'Understanding the Self',q:'What is "Mental Hygiene"?',o:['Brushing teeth and personal cleanliness','The science of maintaining mental health and preventing the development of psychosis, neurosis, or other mental disorders','Therapy for existing mental illness','A diet plan for mental performance'],c:1,e:'Mental Hygiene is the science of maintaining mental health and preventing the development of psychosis, neurosis, or other mental disorders.'},
+{t:'uts',tl:'Understanding the Self',q:'Which Mental Hygiene approach involves correcting minor behavioral adjustments through counseling and psychotherapy?',o:['Preventive Approach','Curative Approach','Therapeutic Approach','Palliative Approach'],c:2,e:'The Therapeutic Approach attempts to correct minor behavioral adjustments through counseling and psychotherapy.'},
+{t:'uts',tl:'Understanding the Self',q:'What is resilience etymologically derived from?',o:['The Latin "resistere," meaning to resist','The Latin "resilire" (re-salire: to jump back), meaning the tendency to spring back and recover to normality','The Greek "resilios," meaning strength','The French "résilier," meaning to cancel'],c:1,e:'Resilience comes from the Latin verb "resilire" (re-salire: to jump back), meaning literally the tendency or ability to spring back and recover to normality after a disturbance.'},
+{t:'uts',tl:'Understanding the Self',q:'Is resilience a fixed trait you either have or don\'t have?',o:['Yes, it is purely genetic','Yes, some people are naturally resilient and others are not','No — it involves behaviors, thoughts, and actions that can be learned and developed in anyone','No — it only comes from traumatic experiences'],c:2,e:'Resilience is NOT a fixed trait people either have or do not have. It involves behaviors, thoughts, and actions that can be learned and developed in anyone.'},
+{t:'uts',tl:'Understanding the Self',q:'What are the three determinants of resiliency?',o:['Social, spiritual, and cultural','Biological, psychological, and socio-cultural','Emotional, behavioral, and cognitive','Genetic, environmental, and physiological'],c:1,e:'The three determinants of resiliency are: Biological (genetics, DNA, developmental processes), Psychological (personality, coping, parenting styles), and Socio-cultural (interacting systems, the Filipino Spirit).'},
+{t:'uts',tl:'Understanding the Self',q:'Which PROTECTIVE FACTOR involves accepting we may not change the situation, but can change how we perceive it?',o:['Sense of Coherence','Self-Awareness','Acceptance','Creativity and Flexibility'],c:2,e:'Acceptance is the protective factor that involves accepting that we may not be able to change the situation, but we can change the way we perceive it.'},
+{t:'uts',tl:'Understanding the Self',q:'What is the Philippine Mental Health Law (RA 11036)?',o:['A law that criminalizes mental illness','A law that secures rights and welfare of persons with mental health needs, integrates services in hospitals, and promotes mental health education','A law requiring all students to see a psychiatrist','A law that privatizes mental health services'],c:1,e:'RA 11036 secures the rights and welfare of persons with mental health needs, integrates psychosocial, psychiatric, and neurological services in hospitals, provides services down to barangay level, improves facilities, and promotes mental health education.'},
+];
+
+const LABS=['A','B','C','D'];
+let selectedModules = { gov: true, ops: true, uts: true };
+let fil=[],ord=[],cur=0,sc=0,ans=false;
+
+function toggleModule(type) {
+  const el = document.querySelector(`.scope-option[data-type="${type}"]`);
+  selectedModules[type] = !selectedModules[type];
+  if(selectedModules[type]) {
+    el.classList.add('active');
+  } else {
+    el.classList.remove('active');
+  }
+}
+
+function shuf(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]]}return r}
+function show(id){['s-start','s-quiz','s-score'].forEach(s=>document.getElementById(s).classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+function initializeSession(){
+  // Aggregate items depending on active choices
+  fil = Q.filter(q => selectedModules[q.t]);
+  
+  if(fil.length === 0) {
+    alert('Please choose at least one diagnostic topic module.');
+    return;
+  }
+  
+  ord=shuf(fil.map((_,i)=>i));
+  cur=0;sc=0;show('s-quiz');render();
+}
+
+function render(){
+  ans=false;
+  const q=fil[ord[cur]],total=ord.length;
+  document.getElementById('pfrac').textContent=`${cur}/${total}`;
+  document.getElementById('pfill').style.width=(cur/total*100)+'%';
+  document.getElementById('qnum').textContent=`Step ${cur+1} of ${total}`;
+  const pill=document.getElementById('qpill');
+  pill.textContent=q.tl;
+  pill.className='pill '+(q.t==='gov'?'pg':q.t==='ops'?'po':'pu');
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('fbwrap').innerHTML='';
+  document.getElementById('nextbtn').style.display='none';
+  const oO=shuf([0,1,2,3]),grid=document.getElementById('opts');
+  grid.innerHTML='';
+  oO.forEach((idx,li)=>{
+    const btn=document.createElement('button');
+    btn.className='opt';btn.dataset.idx=idx;
+    btn.innerHTML=`<span class="opt-l">${LABS[li]}</span><span>${q.o[idx]}</span>`;
+    btn.onclick=()=>pick(idx,q.c,q,oO);
+    grid.appendChild(btn);
+  });
+}
+
+function pick(chosen,correct,q,oO){
+  if(ans)return;ans=true;
+  document.querySelectorAll('.opt').forEach(b=>{
+    b.disabled=true;
+    const bi=parseInt(b.dataset.idx);
+    if(bi===chosen&&chosen===correct)b.classList.add('sc');
+    else if(bi===chosen&&chosen!==correct)b.classList.add('sw');
+    else if(bi===correct)b.classList.add('sr');
+    else b.classList.add('sd');
+  });
+  if(chosen===correct)sc++;
+  const fb=document.createElement('div');
+  fb.className='fb '+(chosen===correct?'fc':'fw');
+  fb.innerHTML=`<span class="fb-icon">${chosen===correct?'✓':'✗'}</span><span>${chosen===correct?'Verification Successful! ':'Anomalous response metrics detected. '}${q.e}</span>`;
+  document.getElementById('fbwrap').appendChild(fb);
+  document.getElementById('nextbtn').style.display='flex';
+}
+
+function next(){
+  cur++;
+  if(cur>=ord.length){showScore();return;}
+  render();
+}
+
+function showScore(){
+  const total=ord.length,pct=Math.round(sc/total*100),circ=364.42,off=circ-(circ*pct/100);
+  show('s-score');
+  const arc=document.getElementById('rarc');
+  arc.style.stroke=pct>=80?'#34d399':pct>=60?'#fbbf24':'#f87171';
+  setTimeout(()=>{arc.style.strokeDashoffset=off},100);
+  document.getElementById('rpct').textContent=pct+'%';
+  document.getElementById('rverdict').textContent=pct>=90?'🏆 Outstanding Mastery':pct>=80?'✨ Highly Proficient':pct>=60?'📚 Competent Metric':'💡 Revision Suggested';
+  document.getElementById('rsub').textContent=`Successfully completed ${sc} out of ${total} targeted operational objectives.`;
+  document.getElementById('pfill').style.width='100%';
+  document.getElementById('pfrac').textContent=`${total}/${total}`;
+}
+function showStart(){show('s-start')}
+</script>
+</body>
+</html>
